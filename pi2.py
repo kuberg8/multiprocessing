@@ -2,7 +2,6 @@ from mpi4py import MPI
 
 import numpy as np
 import time
-import sys
 import random
 
 comm = MPI.COMM_WORLD
@@ -12,6 +11,7 @@ size = comm.Get_size()
 def sample(nsamples):
     pi = 0.0
     hits = 0
+
     for i in range(nsamples):
         x = random.random()
         y = random.random()
@@ -31,4 +31,4 @@ if __name__ == '__main__':
     pi = sample(1000000 // size)
     end = time.process_time()
     if (comm.Get_rank() == 0):
-        print("pi = ", pi, "\nprocessors -", size, "\ntime -", end - start)
+        print("pi =", pi, "\nпроцессы:", size, "\nвремя:", end - start)
