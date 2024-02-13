@@ -1,35 +1,47 @@
 from mpi4py import MPI
-import random
+from termcolor import cprint
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-def compute_pi(num_points):
-    points_inside_circle = 0
-    points_per_process = num_points // size
-    local_points_inside_circle = 0
+def getPi(n):
+    # Выбор промежутока итераций для текущего процесса
+    count = n // size
+    start = rank * count
+    end = (rank + 1) * count
 
-    for _ in range(points_per_process):
-        x = random.uniform(-1, 1)
-        y = random.uniform(-1, 1)
+    if rank == size - 1:
+        end = n
+    ########
 
-        distance = x**2 + y**2
+    subtotal = 0
 
-        if distance <= 1:
-            local_points_inside_circle += 1
+    # цикл для вычисления промежуточной суммы.
+    for i in range(start, end):
+        x = (i + 0.5) / n
 
-    points_inside_circle = comm.reduce(local_points_inside_circle, op=MPI.SUM, root=0)
-    total_points = num_points
+        # добавление текущего значения к промежуточной сумме, используя формулу Мачина.
+        subtotal += 4 / (1 + x ** 2)
+
+    # https://mpitutorial.com/tutorials/mpi-reduce-and-allreduce/
+    # сбор всех промежуточных значений суммы и выполняется редукция с использованием операции суммирования.
+    pi = comm.reduce(subtotal, op=MPI.SUM, root=0)
 
     if rank == 0:
-        pi = 4 * (points_inside_circle / total_points)
-        return pi
+        pi /= n
 
+    return pi
 
-if __name__ == "__main__":
-    num_points = 10000000
-    pi_approximation = compute_pi(num_points)
+if __name__ == '__main__':
+    if rank == 0:
+        cprint('Введите количество итераций:', 'blue')
+        n = int(input())
+    else:
+        n = None
 
-    if (rank == 0):
-        print("Pi =", pi_approximation)
+    n = comm.bcast(n, root=0)
+    pi = getPi(n)
+
+    if rank == 0:
+        cprint(f'Вычисленное значение числа Пи: {pi}', 'green')

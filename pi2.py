@@ -1,3 +1,4 @@
+# метода Монте-Карло
 from mpi4py import MPI
 from termcolor import cprint
 
