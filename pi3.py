@@ -31,5 +31,5 @@ if __name__ == "__main__":
     num_points = 10000000
     pi_approximation = compute_pi(num_points)
 
-    if (comm.Get_rank() == 0):
+    if (rank == 0):
         print("Pi =", pi_approximation)
